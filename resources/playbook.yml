@@ -10,8 +10,8 @@
         state: present
 
     - name: Add MongoDB GPG Key
-      ansible.builtin.command:
-        cmd: curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+      shell: |
+        curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
       args:
         creates: /usr/share/keyrings/mongodb-server-7.0.gpg
 
