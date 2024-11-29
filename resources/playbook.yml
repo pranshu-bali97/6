@@ -9,6 +9,13 @@
           - curl
         state: present
 
+    - name: Install libssl1.1
+      shell: |
+        wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl1.1/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+        dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+      args:
+        creates: /usr/lib/x86_64-linux-gnu/libssl.so.1.1
+
     - name: Add MongoDB GPG Key
       shell: |
         curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
@@ -17,22 +24,22 @@
 
     - name: Add MongoDB repository
       ansible.builtin.copy:
-        content: "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse"
-        dest: /etc/apt/sources.list.d/mongodb-org-7.0.list
+        content: "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.2 multiverse"
+        dest: /etc/apt/sources.list.d/mongodb-org-7.2.list
 
     - name: Update package cache
       apt:
         update_cache: yes
 
-    - name: Install MongoDB
+    - name: Install MongoDB 7.2
       apt:
         name:
-          - mongodb-org=7.0.14
-          - mongodb-org-database=7.0.14
-          - mongodb-org-server=7.0.14
+          - mongodb-org=7.2.0
+          - mongodb-org-database=7.2.0
+          - mongodb-org-server=7.2.0
           - mongodb-mongosh
-          - mongodb-org-mongos=7.0.14
-          - mongodb-org-tools=7.0.14
+          - mongodb-org-mongos=7.2.0
+          - mongodb-org-tools=7.2.0
         state: present
 
     - name: Start MongoDB service
