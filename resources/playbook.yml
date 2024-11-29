@@ -41,9 +41,10 @@
       register: install_libssl
       ignore_errors: yes
 
-    - name: Force apt cache update to recognize new MongoDB repository
+    - name: Force apt to fix broken dependencies
       apt:
         update_cache: yes
+        upgrade: dist
 
     - name: Install MongoDB packages
       apt:
