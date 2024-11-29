@@ -1,5 +1,5 @@
 - name: Install MongoDB 6.0 on Ubuntu
-  hosts: ubuntu
+  hosts: all
   become: yes
   tasks:
     - name: Install required packages (gnupg, curl)
