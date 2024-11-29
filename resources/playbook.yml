@@ -1,0 +1,42 @@
+- name: Install MongoDB
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install required tools
+      apt:
+        name:
+          - gnupg
+          - curl
+        state: present
+
+    - name: Add MongoDB GPG Key
+      ansible.builtin.command:
+        cmd: curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+      args:
+        creates: /usr/share/keyrings/mongodb-server-7.0.gpg
+
+    - name: Add MongoDB repository
+      ansible.builtin.copy:
+        content: "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse"
+        dest: /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install MongoDB
+      apt:
+        name:
+          - mongodb-org=7.0.14
+          - mongodb-org-database=7.0.14
+          - mongodb-org-server=7.0.14
+          - mongodb-mongosh
+          - mongodb-org-mongos=7.0.14
+          - mongodb-org-tools=7.0.14
+        state: present
+
+    - name: Start MongoDB service
+      service:
+        name: mongod
+        state: started
+        enabled: true
