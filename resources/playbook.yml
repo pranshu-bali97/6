@@ -1,9 +1,9 @@
----
-- name: Install MongoDB 6.0 on Ubuntu
-  hosts: all
+- name: Install and Configure MongoDB on Ubuntu
+  hosts: all # Replace 'web' with your target host/group
   become: yes
   tasks:
-    - name: Install required packages (gnupg, curl)
+
+    - name: Install prerequisites (gnupg and curl)
       apt:
         name:
           - gnupg
@@ -11,58 +11,43 @@
         state: present
         update_cache: yes
 
-    - name: Download MongoDB GPG key
-      command: curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc -o /tmp/mongodb-server-6.0.asc
+    - name: Import the MongoDB public GPG key
+      shell: |
+        curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
       args:
-        creates: /tmp/mongodb-server-6.0.asc
+        creates: /usr/share/keyrings/mongodb-server-8.0.gpg
 
-    - name: Add MongoDB GPG key to keyring
-      command: gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg /tmp/mongodb-server-6.0.asc
-      args:
-        creates: /usr/share/keyrings/mongodb-server-6.0.gpg
-
-    - name: Add MongoDB repository to sources list
+    - name: Create MongoDB apt source list
       copy:
-        dest: /etc/apt/sources.list.d/mongodb-org-6.0.list
+        dest: /etc/apt/sources.list.d/mongodb-org-8.0.list
         content: |
-          deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse
-      notify:
-        - Update apt cache
+          deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/8.0 multiverse
 
-    - name: Download libssl1.1 package
-      get_url:
-        url: http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-        dest: /tmp/libssl1.1.deb
-      ignore_errors: yes
-
-    - name: Install libssl1.1 package
-      apt:
-        deb: /tmp/libssl1.1.deb
-      register: install_libssl
-      ignore_errors: yes
-
-    - name: Force apt to fix broken dependencies
-      apt:
-        update_cache: yes
-        upgrade: dist
-
-    - name: Install MongoDB packages
-      apt:
-        name:
-          - mongodb-org=6.0.17
-          - mongodb-org-database=6.0.17
-          - mongodb-org-server=6.0.17
-          - mongodb-org-mongos=6.0.17
-          - mongodb-org-tools=6.0.17
-        state: present
-
-    - name: Start MongoDB service
-      service:
-        name: mongod
-        state: started
-        enabled: yes
-
-  handlers:
     - name: Update apt cache
       apt:
         update_cache: yes
+
+    - name: Install MongoDB 8.0 components
+      apt:
+        name:
+          - mongodb-org=8.0.0
+          - mongodb-org-database=8.0.0
+          - mongodb-org-server=8.0.0
+          - mongodb-mongosh
+          - mongodb-org-mongos=8.0.0
+          - mongodb-org-tools=8.0.0
+        state: present
+
+    - name: Reload systemd manager configuration
+      command: systemctl daemon-reload
+
+    - name: Start MongoDB service
+      systemd:
+        name: mongod
+        state: started
+        enabled: true
+
+    - name: Restart MongoDB service
+      systemd:
+        name: mongod
+        state: restarted
